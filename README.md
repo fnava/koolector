@@ -1,2 +1,3 @@
-
-Python script para descargar ebooks desde librerías publicas como it-ebooks.info o Genesis.
+Python script para descargar ebooks desde librerías publicas, actualmente soport:
+ * it-ebooks.info 
+ * Genesis.
