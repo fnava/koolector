@@ -230,7 +230,7 @@ ORDER BY
                     print "lo borraria"                    
                     #os.remove(filepath)
                 else:
-                    self._bookdb["m"] = marks["to verify"]
+                    self._bookdb["m"] = bookLibrary.marks["to verify"]
                     return
             cmd_wget = "/usr/bin/wget -nc -O %s %s" % (filepath, downloadUrl)
             print cmd_wget
