@@ -71,7 +71,7 @@ class genesis(bookLibrary):
                     if self._bookdb["m"] != bookLibrary.marks["ignored"] and \
                         self._bookdb["m"] != bookLibrary.marks["repeated"]:
                             self._bookdb["m"] = bookLibrary.marks["ignored"]
-                else:
+                elif fileid in self._bookdb:
                     md5 = hashfile(open(filepath, 'rb'))
                     print self._bookdb[fileid]["md5"]
                     print md5
@@ -82,6 +82,9 @@ class genesis(bookLibrary):
                         #os.remove(filepath)
                     else:
                         self._bookdb["m"] = bookLibrary.marks["downloaded"]
+                else:
+                    print "Warn: Unable to find book database:"
+                    print filepath
             else:
                 print "Warn: Unable to find bookd ID for:"
                 print filepath
