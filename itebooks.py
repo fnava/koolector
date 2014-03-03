@@ -1,0 +1,198 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 17 10:26:40 2014
+
+@author: fnavarro
+"""
+
+# Mejoras:
+#  detectar numero de publishers
+#  estadisticas: 
+#   libros por descargar, 
+#   libros descargados el ultimo mes
+#  marcar y saltar archivo que no pueda descargar
+#  historico de evolucion base de datos: #libros
+
+from urllib2 import urlopen
+import urlparse
+from bs4 import BeautifulSoup
+import json
+import re
+import os
+import time
+import magic
+
+from booklibrary import bookLibrary
+
+def get_page(self,url):
+    html = urlopen(url).read()
+    soup = BeautifulSoup(html)
+    for tag in soup.findAll('a', href=True):
+        tag['href'] = urlparse.urljoin(url, tag['href'])
+    return soup
+
+
+class itebooks(bookLibrary):
+    
+    siteUrl = "http://it-ebooks.info"
+        
+    def _get_publishers(self):
+    
+        self._publishers = {}
+        idx = 1
+        while idx > 0:
+            soup = get_page("%s/publisher/%s/" % (self.siteUrl, idx) )
+            h1 = soup.find_all("h1")
+            if len(h1) > 0:
+                publishers[idx] = h1[0].string
+                idx += 1
+            else:
+                break
+        #print publishers
+    
+    def _get_items(self):
+        book_count = 0
+        books = {}
+        for pubk,publisher in self._publishers.items():
+            print "Publisher: %s" % publisher
+            endloop = 1
+            page = 1
+            while endloop > 0:
+    #            print " page: %s" % page
+                soup = get_page("%s/publisher/%d/page/%d/" % (self.siteUrl, pubk, page))
+                aes = soup.find_all("a")
+                endloop = 0
+                for a in aes:
+                    title = a['title']
+                    if title == "Next page":
+                        endloop += 2
+                    elif title == "Prev page":
+                        endloop += -1
+    #                print title, endloop
+                    if len(a.find_all('img')) > 0:
+                        book_idx = int(re.search('.*/book/(\d+)/$', a['href']).groups()[0])
+                        url_icon = a.contents[0]['src']
+                        short_title = re.search('/images/ebooks/.+/(.*).jpg$', url_icon).groups()[0]
+                        books[book_idx] = {
+                                           "url-itbooks":a['href'],
+                                            "url-icon":url_icon,
+                                            "title":title,
+                                            "short-title":short_title,
+                                            "publisher":publisher
+                                            }
+                        book_count 
+                page += 1
+    
+    def _get_items_details(self):
+            
+        bidx = 1
+        blen = len(self._bookdb)
+        for book_idx,book_data in self._bookdb.items():
+            soup = get_page(book_data["url-itbooks"])
+            a = soup.find('td', text="Download:").find_all_next('a')[0]
+            book_data["url-download"] = a['href']
+            #b = soup.find('b', itemprop='author')
+            #book_data["author"] = b.string
+            b = soup.find('b', itemprop='isbn')
+            book_data["isbn"] = b.string
+            b = soup.find('b', itemprop='datePublished')
+            book_data["datePublished"] = b.string
+            b = soup.find('b', itemprop='numberOfPages')
+            book_data["numberOfPages"] = b.string
+            b = soup.find('b', itemprop='inLanguage')
+            book_data["inLanguage"] = b.string
+            b = soup.find('b', itemprop='bookFormat')
+            book_data["bookFormat"] = b.string
+            print "%05d (%d/%d) %s" % (book_idx, bidx, blen, book_data)
+            bidx += 1
+    
+    def _download_item(self, filename, refererUrl, downloadUrl):
+        filepath = os.path.join(self.homeDir, self.booksDir, filename)
+        cmd_wget = "wget -nc -O %s --referer %s %s" % (filepath, refererUrl, downloadUrl) 
+        filetype = ""
+        for i in range(0,10):
+            if os.access(filepath, os.F_OK): 
+                os.remove(filepath)
+            if filetype != "application/pdf": 
+                os.system(cmd_wget)
+                mime = magic.Magic(mime=True)
+                filetype = mime.from_file(filepath)
+                time.sleep(10)
+            else:
+                break
+        sys.stderr.write("Unable to download %s" % filename)
+        
+    def _check_next_item(self):
+        basedir = os.path.join(self.homeDir,self.booksDir)
+        bidx = 1
+        blen = len(self._bookdb)
+        for book_idx,book_data in self._bookdb.items():
+            filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
+            filepath = os.path.join(basedir,filename)
+            if not os.access(filepath, os.F_OK):
+                soup = get_page(book_data["url-itbooks"])
+                a = soup.find('td', text="Download:").find_all_next('a')[0]
+                url_download = a['href']
+                #print('%s/../wget2.sh "%s" %s %s' % (basedir, filename, book_data['url-itbooks'],url_download))
+                return (filename, book_data['url-itbooks'],url_download)
+                break
+            
+    def _new_items(self):
+        items = []
+        basedir = os.path.join(self.homeDir,self.booksDir)
+        bidx = 1
+        blen = len(self._bookdb)
+        for book_idx,book_data in self._bookdb.items():
+            filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
+            filepath = os.path.join(basedir,filename)
+            if not os.access(filepath, os.F_OK):
+                soup = get_page(book_data["url-itbooks"])
+                a = soup.find('td', text="Download:").find_all_next('a')[0]
+                url_download = a['href']
+                #print('%s/../wget2.sh "%s" %s %s' % (basedir, filename, book_data['url-itbooks'],url_download))
+                items.append( (filename, 
+                                   book_data['url-itbooks'],
+                                   url_download)
+                                   )
+        return items
+
+    def updatedb(self):
+        self._get_publishers()
+        #publishers = {1: u'The Pragmatic Programmers'}
+        #publishers = {13: u'McGraw-Hill'}
+        #publishers = {16: u'Springer'}
+        self._get_items()
+        self._get_items_details()
+        self._save_bookdb()
+    
+    def download(self):
+        self._load_bookdb()
+        next_item = self._check_next_item()
+        if next_item is not None:
+            (filename, refererUrl, downloadUrl) = next_item 
+            self._download_item(filename, refererUrl, downloadUrl)
+        else:
+            print "Nothing to download"
+            
+    def status(self):
+        self._load_bookdb()
+        publishers = {}
+        for b_idx,b in self._bookdb.items():
+            p = b['publisher']
+            if p in publishers:
+                publishers[p] += 1
+            else:
+                publishers[p] = 1
+        print "Books in database: %d" % len(self._bookdb)
+        #for p,v in publishers.items():
+        for p in sorted(publishers, key=publishers.get, reverse=True):
+            c = publishers[p]
+            print "  (%4.2f %%) %s: %d books" % (100.0*float(c)/float(len(self._bookdb)),p,c ) 
+        items = self._new_items()
+        if len(items) == 0:
+            print "No new books missing. Nothing to download"
+        else:
+            print "New %d books missing. Next files to be downloaded:" % len(items)
+        for i in items:
+            print "   %s" % i[0]
+        
