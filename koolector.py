@@ -10,12 +10,6 @@ import os
 import argparse
 from booklibraryfactory import bookLibraryFactory
 
-# Will use strategy DP to decouple details from library collector
-# details, will be handled by the strategy class "class"
-#libraries = {
-#    "itebooks":itebooks,
-#    "genesis":genesis
-#    }
 libraries = bookLibraryFactory.libraries
 
 basedir = "/home/taux"
@@ -31,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description=descr_msg, 
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('site', help=help_msg[:-3])
-    parser.add_argument('command', help="updatedb | download | status")                    
+    parser.add_argument('command', help="updatedb | download | status | check_books")                    
     
     args = parser.parse_args()
     

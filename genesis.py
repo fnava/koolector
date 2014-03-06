@@ -6,6 +6,7 @@ Created on Wed Feb 26 12:09:20 2014
 """
 
 import os
+import stat
 import subprocess
 import sys
 import re
@@ -53,41 +54,53 @@ class genesis(bookLibrary):
         self._load_bookdb()
         # rebuild local book database after libgendb data
         self._bookdb_compare(libgendb) 
-        # check downloaded books integrity against local db
-        self._check_books()
         
-    def _check_books(self):
+    def check_books(self):
+
+        def criteria(filepath, md5):
+            """Compare computed md5 with stored in book db"""
+            md5 = hashfile(open(filepath, 'rb'))
+            return self._bookdb[fileid]["md5"] != md5
+
+        self._load_bookdb()
         books_dir = os.path.join(self.homeDir, self.booksDir)
+        rejected_books_dir = os.path.join(self.homeDir, "rejected")
         book_files = [ f for f in os.listdir(books_dir) if os.path.isfile(os.path.join(books_dir,f)) ]
         
-        for f in book_files:
-            filepath = os.path.join(books_dir,f)
-            m = re.match(u'^([0-9]{7})_',f)      
+        for filename in book_files:
+            filepath = os.path.join(books_dir,filename)
+            m = re.match(u'^([0-9]{7})_',filename)
             if m:
-                fileid = str(int(m.group(1)))
+                fileid_str = m.group(1)
+                fileid = str(int(fileid_str))
+            else:
+                print "%s: rejected, no ID found" % filename
+                continue
+            if fileid in self._bookdb:
+                book = self._bookdb[fileid]
 #                print fileid, filepath, self._bookdb[fileid] 
                 filesize = os.stat(filepath).st_size
                 if filesize == 0:
-                    if self._bookdb["m"] != bookLibrary.marks["ignored"] and \
-                        self._bookdb["m"] != bookLibrary.marks["repeated"]:
-                            self._bookdb["m"] = bookLibrary.marks["ignored"]
-                elif fileid in self._bookdb:
-                    md5 = hashfile(open(filepath, 'rb'))
-                    print self._bookdb[fileid]["md5"]
-                    print md5
-                    if self._bookdb[fileid]["md5"] != md5:
-                        print "Warn: MD5 mismatch for:"
-                        print filepath
-                        self._bookdb["m"] = bookLibrary.marks["error"]
-                        #os.remove(filepath)
+                    if m in book and \
+                        book["m"] != bookLibrary.marks["ignored"] and \
+                        book["m"] != bookLibrary.marks["repeated"]:
+                            book["m"] = bookLibrary.marks["ignored"]
                     else:
-                        self._bookdb["m"] = bookLibrary.marks["downloaded"]
+                        print "%s: rejected, size 0" % fileid_str
+                        self._reject_file(filename,book)
                 else:
-                    print "Warn: Unable to find book database:"
-                    print filepath
+                    if not criteria(filepath, self._bookdb[fileid]["md5"]):
+                        print "%s: rejected, md5 mismatch" % fileid_str
+                        self._reject_file(filename,book)
+                    else:
+                        # File exists, and md5 match db claims, so we
+                        # marked it as correctly downloaded in db
+                        print "%s: ok" % fileid_str
+                        self._bookdb["m"] = bookLibrary.marks["downloaded"]
             else:
-                print "Warn: Unable to find bookd ID for:"
-                print filepath
+                print "%s: rejected, not found in db" % fileid_str
+                self._reject_file(filename)
+        self._save_bookdb()
 
     def _query_libgen(self): 
         filter = """

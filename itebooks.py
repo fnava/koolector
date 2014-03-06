@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 import json
 import re
 import os
+import stat
 import time
 import magic
 
@@ -164,7 +165,55 @@ class itebooks(bookLibrary):
         self._get_items()
         self._get_items_details()
         self._save_bookdb()
-    
+
+    def check_books(self):
+        
+        def criteria(filepath):
+            """Check mime filetype, has to be PDF"""
+            filetype = mime.from_file(filepath)
+            return filetype != "application/pdf"
+        
+        self._load_bookdb()
+        books_dir = os.path.join(self.homeDir, self.booksDir)
+        rejected_books_dir = os.path.join(self.homeDir, "rejected")
+        book_files = [ f for f in os.listdir(books_dir) if os.path.isfile(os.path.join(books_dir,f)) ]
+        mime = magic.Magic(mime=True) 
+        
+        for filename in book_files:
+            filepath = os.path.join(books_dir,filename)
+            m = re.match(u'^([0-9]{5})_',filename)
+            if m:
+                fileid_str = m.group(1)
+                fileid = str(int(fileid_str))
+            else:
+                print "%s: rejected, no ID found" % filename
+                continue
+            if fileid in self._bookdb:
+                book = self._bookdb[fileid]
+#                print fileid, filepath, self._bookdb[fileid] 
+                filesize = os.stat(filepath).st_size
+                if filesize == 0:
+                    if m in book and \
+                        book["m"] != bookLibrary.marks["ignored"] and \
+                        book["m"] != bookLibrary.marks["repeated"]:
+                            book["m"] = bookLibrary.marks["ignored"]
+                    else:
+                        print "%s: rejected, size 0" % fileid_str
+                        self._reject_file(filename,book)
+                else:
+                    if not criteria(filepath):
+                        print "%s: rejected, filetype mismatch" % fileid_str
+                        self._reject_file(filename,book)
+                    else:
+                        # File exists, and md5 match db claims, so we
+                        # marked it as correctly downloaded in db
+                        print "%s: ok" % fileid_str
+                        self._bookdb["m"] = bookLibrary.marks["downloaded"]
+            else:
+                print "%s: rejected, not found in db" % fileid_str
+                self._reject_file(filename)
+        self._save_bookdb()
+
     def download(self):
         self._load_bookdb()
         next_item = self._check_next_item()
