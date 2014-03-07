@@ -14,6 +14,8 @@ import json
 import magic
 from booklibrary import bookLibrary
 import hashlib
+import difflib
+
 
 # taken from http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
 def hashfile(afile, blocksize=65536):
@@ -59,11 +61,13 @@ class genesis(bookLibrary):
 
         def criteria(filepath, md5):
             """Compare computed md5 with stored in book db"""
-            r = ( md5.strip().upper() == hashfile(open(filepath, 'rb')).upper() )
-            if not r:
-                print self._bookdb[fileid]["md5"]
-                print md5
-            return r
+            A = md5.strip().upper() 
+            B = hashfile(open(filepath, 'rb')).upper()
+            if not A == B:
+                "\n".join(difflib.ndiff([A], [B])),
+                #print self._bookdb[fileid]["md5"]
+                #print md5
+            return A == B
 
         self._load_bookdb()
         books_dir = os.path.join(self.homeDir, self.booksDir)
