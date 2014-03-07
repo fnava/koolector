@@ -82,13 +82,17 @@ class bookLibrary:
         else:
             self._bookdb = {}
             
-    def _reject_file(self, filename, rejection_dir="rejected", book=None):
+    def _reject_file(self, filename, rejection_dir="", book=None):
         """File reject actions called from check_books
         
         Common action to all book library types to be performed with all
         rejected files during check_books execution
         """
         books_dir = os.path.join(self.homeDir, self.booksDir)
+        if rejected == "":
+            rejection_dir = "rejected"
+        else:
+            rejection_dir = "rejected." + rejection_dir
         rejected_books_dir = os.path.join(self.homeDir, rejection_dir)
         filepath = os.path.join(books_dir,filename)
         if book is not None:
