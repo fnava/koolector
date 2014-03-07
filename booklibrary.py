@@ -8,6 +8,7 @@ Created on Wed Feb 26 12:07:21 2014
 import json
 import os
 import re
+import time
 
 
 jsonFile = "books.json"
@@ -64,6 +65,11 @@ class bookLibrary:
         f = open(filename,'w')
         f.write(json.dumps(self._bookdb,sort_keys=True))
         f.close()
+        filename = filename + '_%s' % time.strftime("%Y%m%d_%H%M",time.localtime())
+        f = open(filename,'w')
+        f.write(json.dumps(self._bookdb,sort_keys=True))
+        f.close()
+        
     
     def _load_bookdb(self):
         """Load book database into _bookdb dictionary"""
