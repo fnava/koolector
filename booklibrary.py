@@ -89,7 +89,7 @@ class bookLibrary:
         rejected files during check_books execution
         """
         books_dir = os.path.join(self.homeDir, self.booksDir)
-        if rejected == "":
+        if rejection_dir == "":
             rejection_dir = "rejected"
         else:
             rejection_dir = "rejected." + rejection_dir
