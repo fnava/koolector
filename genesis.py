@@ -76,6 +76,7 @@ class genesis(bookLibrary):
                 fileid = m.group(1)
             else:
                 print "%s: rejected, no ID found" % filename
+                self._reject_file(filename)
                 continue
             if fileid in self._bookdb:
                 book = self._bookdb[fileid]
