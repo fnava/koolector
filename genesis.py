@@ -60,7 +60,7 @@ class genesis(bookLibrary):
         def criteria(filepath, md5):
             """Compare computed md5 with stored in book db"""
             md5 = hashfile(open(filepath, 'rb'))
-            r = self._bookdb[fileid]["md5"] != md5
+            r = ( self._bookdb[fileid]["md5"].upper != md5.upper )
             if r:
                 print self._bookdb[fileid]["md5"]
                 print md5
