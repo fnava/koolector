@@ -42,7 +42,7 @@ class bookLibrary:
         """Pass integrity tests on book files contained in downloads folder.
         
         Keyword arguments:
-            None
+            Non
         For each file in the folder, if it is found in database and meets
         integrity constraints is marked in db as downloaded, otherwise 
         it's marked as error in db and the bad file is moved to 'rejected'
@@ -82,14 +82,14 @@ class bookLibrary:
         else:
             self._bookdb = {}
             
-    def _reject_file(self, filename, book=None):
+    def _reject_file(self, filename, rejection_dir="rejected", book=None):
         """File reject actions called from check_books
         
         Common action to all book library types to be performed with all
         rejected files during check_books execution
         """
         books_dir = os.path.join(self.homeDir, self.booksDir)
-        rejected_books_dir = os.path.join(self.homeDir, "rejected")
+        rejected_books_dir = os.path.join(self.homeDir, rejection_dir)
         filepath = os.path.join(books_dir,filename)
         if book is not None:
             book["m"] = bookLibrary.marks["error"]

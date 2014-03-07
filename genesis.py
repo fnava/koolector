@@ -83,7 +83,7 @@ class genesis(bookLibrary):
                 fileid = m.group(1)
             else:
                 print "%s: rejected, no ID found" % filename
-                self._reject_file(filename)
+                self._reject_file(filename,"badid")
                 continue
             if fileid in self._bookdb:
                 book = self._bookdb[fileid]
@@ -96,11 +96,11 @@ class genesis(bookLibrary):
                             book["m"] = bookLibrary.marks["ignored"]
                     else:
                         print "%s: rejected, size 0" % fileid
-                        self._reject_file(filename,book)
+                        self._reject_file(filename,"badsize",book)
                 else:
                     if not criteria(filepath, self._bookdb[fileid]["md5"]):
                         print "%s: rejected, md5 mismatch" % fileid
-                        self._reject_file(filename,book)
+                        self._reject_file(filename,"badmd5",book)
                     else:
                         # File exists, and md5 match db claims, so we
                         # marked it as correctly downloaded in db
@@ -108,7 +108,7 @@ class genesis(bookLibrary):
                         self._bookdb["m"] = bookLibrary.marks["downloaded"]
             else:
                 print "%s: rejected, not found in db" % fileid
-                self._reject_file(filename)
+                self._reject_file(filename,"notindb")
         self._save_bookdb()
 
     def _query_libgen(self): 
