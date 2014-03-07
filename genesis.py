@@ -190,43 +190,38 @@ ORDER BY
         #  a dictionary, the dictionary may not equal the original one. 
         #  That is, loads(dumps(x)) != x if x has non-string keys.
 
-        new_bookdb = {}
-        for idx,libgen_book in libgendb.items():
-            sidx = str(idx)
+        tmp_bookdb = {}
+        for bidx,libgen_book in libgendb.items():
+            sidx = "B%07d" % bidx
             if sidx in self._bookdb:
                 local_book = self._bookdb[sidx]
-                new_bookdb[sidx] = {}
-                for idx2, libgen_book_field in libgen_book.items():
-                    if idx2 in local_book:
-                        if local_book[idx2] == libgen_book_field:
-                            new_bookdb[sidx][idx2] = local_book[idx2]
+                tmp_bookdb[sidx] = {}
+                for fidx, libgen_book_field in libgen_book.items():
+                    if fidx in local_book:
+                        if local_book[fidx] == libgen_book_field:
+                            tmp_bookdb[sidx][fidx] = local_book[fidx]
                         else:
-                            print "new field value for book id %s in libgen" % sidx
-                            print "  field: %s" % idx2
-                            print "  old value: %s" % local_book[idx2] 
-                            print "  new value: %s" % libgen_book_field 
-                            new_bookdb[sidx][idx2] = libgen_book_field
+                            print "%s.%s: %s -> %s" % (bidx, fidx, local_book[fidx], libgen_book_field)
+                            tmp_bookdb[sidx][fidx] = libgen_book_field
                     else:
-                        print "new field %s for book id %s in libgen" % (idx2, sidx)
-                        print "  value: %s" % libgen_book_field 
-                        new_bookdb[sidx][idx2] = libgen_book_field
+                        print "%s.%s: %s" % (bidx, fidx, libgen_book_field)
+                        tmp_bookdb[sidx][fidx] = libgen_book_field
                 if "m" in self._bookdb[sidx]:
-                    new_bookdb[sidx]["m"] = self._bookdb[sidx]["m"]
+                    tmp_bookdb[sidx]["m"] = self._bookdb[sidx]["m"]
                 else:
-                    new_bookdb[sidx]["m"] = ""
+                    tmp_bookdb[sidx]["m"] = ""
             else:
-                print "new book found in libgen"
                 print json.dumps(libgen_book,
                                 sort_keys=True,
                                 indent=4, 
                                 separators=(',', ': ')
                                 )
-                new_bookdb[sidx] = libgen_book
-                new_bookdb[sidx]["m"] = ""
-#            short_title = "".join([c for c in new_bookdb[sidx]["title"] if re.match(r'\w', c)])
-            short_title = self._shortify(new_bookdb[sidx]["title"])
-            new_bookdb[sidx]["filename"] =  "%07d_%s.pdf" % (idx, short_title)
-        self._bookdb = new_bookdb
+                tmp_bookdb[sidx] = libgen_book
+                tmp_bookdb[sidx]["m"] = ""
+#            short_title = "".join([c for c in tmp_bookdb[sidx]["title"] if re.match(r'\w', c)])
+            short_title = self._shortify(tmp_bookdb[sidx]["title"])
+            tmp_bookdb[sidx]["filename"] =  "%s_%s.pdf" % (sidx, short_title)
+        self._bookdb = tmp_bookdb
         self._save_bookdb()
     
     def _filepath(self, book):
