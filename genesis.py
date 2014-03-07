@@ -69,10 +69,11 @@ class genesis(bookLibrary):
         
         for filename in book_files:
             filepath = os.path.join(books_dir,filename)
-            m = re.match(u'^([0-9]{7})_',filename)
+            m = re.match(u'^(B[0-9]{7})_',filename)
             if m:
-                fileid_str = m.group(1)
-                fileid = str(int(fileid_str))
+#                fileid_str = m.group(1)
+#                fileid = str(int(fileid_str))
+                fileid = m.group(1)
             else:
                 print "%s: rejected, no ID found" % filename
                 continue
@@ -86,19 +87,19 @@ class genesis(bookLibrary):
                         book["m"] != bookLibrary.marks["repeated"]:
                             book["m"] = bookLibrary.marks["ignored"]
                     else:
-                        print "%s: rejected, size 0" % fileid_str
+                        print "%s: rejected, size 0" % fileid
                         self._reject_file(filename,book)
                 else:
                     if not criteria(filepath, self._bookdb[fileid]["md5"]):
-                        print "%s: rejected, md5 mismatch" % fileid_str
+                        print "%s: rejected, md5 mismatch" % fileid
                         self._reject_file(filename,book)
                     else:
                         # File exists, and md5 match db claims, so we
                         # marked it as correctly downloaded in db
-                        print "%s: ok" % fileid_str
+                        print "%s: ok" % fileid
                         self._bookdb["m"] = bookLibrary.marks["downloaded"]
             else:
-                print "%s: rejected, not found in db" % fileid_str
+                print "%s: rejected, not found in db" % fileid
                 self._reject_file(filename)
         self._save_bookdb()
 
