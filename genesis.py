@@ -64,7 +64,7 @@ class genesis(bookLibrary):
             A = md5.strip().upper() 
             B = hashfile(open(filepath, 'rb')).upper()
             if not A == B:
-                "\n".join(difflib.ndiff([A], [B])),
+                print "\n".join(difflib.ndiff([A], [B]))
                 #print self._bookdb[fileid]["md5"]
                 #print md5
             return A == B
