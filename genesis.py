@@ -234,8 +234,11 @@ ORDER BY
         self._save_bookdb()
     
     def _filepath(self, book):
-        return os.path.join(self.homeDir, self.booksDir, book["filename"])
-    
+        if "filename" in book:
+            return os.path.join(self.homeDir, self.booksDir, book["filename"])
+        else:
+            return None
+            
     def _download_item(self, book):
         downloadUrl = "%s/get?md5=%s&open=0" % (self.siteUrl, book["md5"])
         filepath = self._filepath(book)
@@ -255,12 +258,13 @@ ORDER BY
         sys.stderr.write("Unable to download %s" % filepath)
         
     def _check_next_item(self):
-        bidx = 1
-        blen = len(self._bookdb)
         for book_idx,book_data in self._bookdb.items():
-            if not os.access(self._filepath(book_data), os.F_OK):
-                return book_data
-                break
+            filename = self._filepath(book_data)
+            if filename is not None:
+                if not os.access(filename, os.F_OK):
+                    return book_data
+                    #break
+        return None
                 
     def download(self):
         self._load_bookdb()
