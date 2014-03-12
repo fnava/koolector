@@ -244,8 +244,6 @@ class itebooks(bookLibrary):
         
     def _check_next_item(self):
         basedir = os.path.join(self.homeDir,self.booksDir)
-        bidx = 1
-        blen = len(self._bookdb)
         for book_idx,book_data in self._bookdb.items():
             #filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
             short_title = self._shortify(book_data["title"])
@@ -262,20 +260,12 @@ class itebooks(bookLibrary):
     def _new_items(self):
         items = []
         basedir = os.path.join(self.homeDir,self.booksDir)
-        bidx = 1
-        blen = len(self._bookdb)
         for book_idx,book_data in self._bookdb.items():
-            filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
+            short_title = self._shortify(book_data["title"])
+            filename =  "%s_%s.pdf" % (book_idx, short_title)
             filepath = os.path.join(basedir,filename)
             if not os.access(filepath, os.F_OK):
-                soup = get_page(book_data["url-itbooks"])
-                a = soup.find('td', text="Download:").find_all_next('a')[0]
-                url_download = a['href']
-                #print('%s/../wget2.sh "%s" %s %s' % (basedir, filename, book_data['url-itbooks'],url_download))
-                items.append( (filename, 
-                                   book_data['url-itbooks'],
-                                   url_download)
-                                   )
+                items.append( (filename, book_data) )
         return items
 
 
