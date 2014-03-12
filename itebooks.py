@@ -231,7 +231,8 @@ class itebooks(bookLibrary):
             if os.access(filepath, os.F_OK): 
                 os.remove(filepath)
             if filetype != "application/pdf": 
-                os.system(cmd_wget)
+                #os.system(cmd_wget)
+                print cmd                
                 mime = magic.Magic(mime=True)
                 filetype = mime.from_file(filepath)
                 time.sleep(10)
