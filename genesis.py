@@ -260,11 +260,12 @@ class genesis(bookLibrary):
         items = []
         basedir = os.path.join(self.homeDir,self.booksDir)
         for book_idx,book_data in self._bookdb.items():
-            short_title = self._shortify(book_data["title"])
-            filename =  "%s_%s.pdf" % (book_idx, short_title)
-            filepath = os.path.join(basedir,filename)
-            if not os.access(filepath, os.F_OK):
-                items.append( (filename, book_data) )
+            if "title" in book_data:
+                short_title = self._shortify(book_data["title"])
+                filename =  "%s_%s.pdf" % (book_idx, short_title)
+                filepath = os.path.join(basedir,filename)
+                if not os.access(filepath, os.F_OK):
+                    items.append( (filename, book_data) )
         return items
 
 
