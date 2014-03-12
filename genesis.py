@@ -32,7 +32,15 @@ class genesis(bookLibrary):
     siteUrl = "http://libgen.org"
 
     def status(self):
-        print "status genesis. still not implemented"        
+        self._load_bookdb()
+        print "Books in database: %d" % len(self._bookdb)
+        items = self._new_items()
+        if len(items) == 0:
+            print "No new books missing. Nothing to download"
+        else:
+            print "New %d books missing. Next files to be downloaded:" % len(items)
+        for i in items:
+            print "   %s" % i[0]           
         
     def updatedb(self):
         libgendb = self._query_libgen()
@@ -247,4 +255,19 @@ class genesis(bookLibrary):
                     return book_data
                     #break
         return None
+        
+    def _new_items(self):
+        items = []
+        basedir = os.path.join(self.homeDir,self.booksDir)
+        for book_idx,book_data in self._bookdb.items():
+            short_title = self._shortify(book_data["title"])
+            filename =  "%s_%s.pdf" % (book_idx, short_title)
+            filepath = os.path.join(basedir,filename)
+            if not os.access(filepath, os.F_OK):
+                items.append( (filename, book_data) )
+        return items
+
+
+            
+
                 
