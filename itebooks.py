@@ -232,7 +232,7 @@ class itebooks(bookLibrary):
                 os.remove(filepath)
             if filetype != "application/pdf": 
                 #os.system(cmd_wget)
-                print cmd                
+                print cmd_wget                
                 mime = magic.Magic(mime=True)
                 filetype = mime.from_file(filepath)
                 time.sleep(10)
