@@ -139,50 +139,9 @@ class genesis(bookLibrary):
 
     def _query_libgen(self): 
         """Returns a dictionary with book data retrieved from mysql libgen db"""
-        filter = """
-SELECT 
-    updated.id, 
-    updated.md5,
-    updated.Title,
-    updated.Author,
-    updated.Year,       /* Filtered, only 2012-2013 */
-    updated.Publisher,
-    updated.Pages,
-    updated.Language,   /* Filtered, only "English" */
-    updated.Extension,  /* Filtered, only "pdf" */
-    updated.Identifier, /* Usually ISBN13.ISBN10 */
-    topics.topic_descr  /* Format topic\\subtopic */
-FROM updated, topics 
-WHERE 
-    updated.Extension='pdf'
-    AND updated.Filename!="" 
-    AND updated.Generic="" 
-    AND updated.Visible=""
-    AND updated.Language="English"
-    AND updated.Year in ("2014","2013")
-    AND (
-        topics.topic_descr like "Computers%"
-        OR topics.topic_descr like "Techn%"
-        OR topics.topic_descr like "Math%"
-        OR topics.topic_descr like "Scien%"
-        )
-    AND updated.topic=topics.topic_id         # id
-        # md5
-        # ISBN
-        # Año
-        # Titulo 
-        # Publisher
-        # num paginas? - filtrado, por generalidad
-        # Language? - filtrado, por generalidad
-        # Format? - filtrado, por generalidad
-    AND topics.lang='en' 
-/* que sentido tiene el group by aquí?
-GROUP BY 
-    updated.Year,topics.topic_descr 
-*/
-ORDER BY 
-    updated.Year DESC
-"""
+        import genesis_sql        
+        filter = genesis_sql.queries["everything_2014_bysize"]
+
         fields = ["id", 
                   "md5",
                   "title",
