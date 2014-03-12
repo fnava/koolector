@@ -231,15 +231,15 @@ class itebooks(bookLibrary):
         for i in range(0,10):
             if os.access(filepath, os.F_OK): 
                 filetype = mime.from_file(filepath)
-            if filetype == "application/pdf":
-                return
-            else:
-                os.remove(filepath)
-                os.system(cmd_wget)
-                #print cmd_wget             
-                mime = magic.Magic(mime=True)
-                filetype = mime.from_file(filepath)
-                time.sleep(10)
+                if filetype == "application/pdf":
+                    return
+                else:
+                    os.remove(filepath)
+            os.system(cmd_wget)
+            #print cmd_wget             
+            mime = magic.Magic(mime=True)
+            filetype = mime.from_file(filepath)
+            time.sleep(10)
         sys.stderr.write("Unable to download %s" % filename)
         
     def _check_next_item(self):
