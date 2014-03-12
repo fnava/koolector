@@ -17,8 +17,9 @@ import hashlib
 import difflib
 
 
-# taken from http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
 def hashfile(afile, blocksize=65536):
+    """Return md5 hash for a given file"""
+    # taken from http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
     hasher = hashlib.md5()
     buf = afile.read(blocksize)
     while len(buf) > 0:
@@ -29,35 +30,29 @@ def hashfile(afile, blocksize=65536):
 class genesis(bookLibrary):
     
     siteUrl = "http://libgen.org"
-    
+
+    def status(self):
+        print "status genesis. still not implemented"        
+        
     def updatedb(self):
-        # Pseudo codigo
-        ## Descarga de libgen
-        # Descargar dump database
-        # Descargar snapshot codigo
-        # Borrar mysql db
-        # Descomprimir dump (piping?)
-        # Importar dump
-        # Descomprimir codigo php
-        # Copiar config.php                    #os.remove(filepath)
-        # restart mysql y apache
-
-        ## Otencion listado items
-        #+ consulta contra database
-        #+ formar diccionario base "books"
-        #+ cargar diccionario anterior
-        #+ merge de datos:
-            # copiar marcas        # Compare book databases
-            # ??
-        # volcar diccionario a JSON
-
-        # query to libgen local mirrored mysql database   
         libgendb = self._query_libgen()
         self._load_bookdb()
-        # rebuild local book database after libgendb data
         self._bookdb_compare(libgendb) 
         
+    def download(self):
+        self._load_bookdb()
+        next_item = self._check_next_item()
+        if next_item is not None:
+            self._download_item(next_item)
+        else:
+            print "Nothing to download"
+                    
     def check_books(self):
+        """Browse book directory for books and find matches into database
+        
+        Book file integrity is checked using criteria function which
+        computes md5 sum and compares with value stored in database
+        """
 
         def criteria(filepath, md5):
             """Compare computed md5 with stored in book db"""
@@ -78,8 +73,6 @@ class genesis(bookLibrary):
             filepath = os.path.join(books_dir,filename)
             m = re.match(u'^(B[0-9]{7})_',filename)
             if m:
-#                fileid_str = m.group(1)
-#                fileid = str(int(fileid_str))
                 fileid = m.group(1)
             else:
                 print "%s: rejected, no ID found" % filename
@@ -111,7 +104,41 @@ class genesis(bookLibrary):
                 self._reject_file(filename,"notindb")
         self._save_bookdb()
 
+    # Helper functions:
+
+    def _filepath(self, book):
+        """Returns full path filename for a books file"""
+        if "filename" in book:
+            return os.path.join(self.homeDir, self.booksDir, book["filename"])
+        else:
+            return None
+            
+    def _mirrordb(self):
+        """Download libgen db snapshot dump file and rebuild in local mirror."""
+        pass
+        # Pseudo codigo
+        ## Descarga de libgen
+        # Descargar dump database
+        # Descargar snapshot codigo
+        # Borrar mysql db
+        # Descomprimir dump (piping?)
+        # Importar dump
+        # Descomprimir codigo php
+        # Copiar config.php                    
+        # restart mysql y apache
+
+        ## Otencion listado items
+        #+ consulta contra database
+        #+ formar diccionario base "books"
+        #+ cargar diccionario anterior
+        #+ merge de datos:
+            # copiar marcas        
+            # Compare book databases
+            # ??
+        # volcar diccionario a JSON
+
     def _query_libgen(self): 
+        """Returns a dictionary with book data retrieved from mysql libgen db"""
         filter = """
 SELECT 
     updated.id, 
@@ -190,7 +217,7 @@ ORDER BY
         return libgendb
 
     def _bookdb_compare(self, libgendb):        
-
+        """Merge upstream with local database"""
         # NOTE: from http://docs.python.org/2/library/json.html
         #  Keys in key/value pairs of JSON are always of the type str. 
         #  When a dictionary is converted into JSON, all the keys of 
@@ -233,13 +260,8 @@ ORDER BY
         self._bookdb = tmp_bookdb
         self._save_bookdb()
     
-    def _filepath(self, book):
-        if "filename" in book:
-            return os.path.join(self.homeDir, self.booksDir, book["filename"])
-        else:
-            return None
-            
     def _download_item(self, book):
+        """Download book file"""
         downloadUrl = "%s/get?md5=%s&open=0" % (self.siteUrl, book["md5"])
         filepath = self._filepath(book)
         for i in range(0,2):
@@ -258,6 +280,7 @@ ORDER BY
         sys.stderr.write("Unable to download %s" % filepath)
         
     def _check_next_item(self):
+        """Return next book data from download queue"""
         for book_idx,book_data in self._bookdb.items():
             filename = self._filepath(book_data)
             if filename is not None:
@@ -266,13 +289,3 @@ ORDER BY
                     #break
         return None
                 
-    def download(self):
-        self._load_bookdb()
-        next_item = self._check_next_item()
-        if next_item is not None:
-            self._download_item(next_item)
-        else:
-            print "Nothing to download"
-                    
-    def status(self):
-        print "status genesis. still not implemented"

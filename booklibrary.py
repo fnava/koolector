@@ -28,35 +28,36 @@ class bookLibrary:
         self.homeDir=homeDir
         
     def command(self, cmd):
-        if cmd in ["updatedb","download","status","check_books","publishers"]:
+        if cmd in ["updatedb","download","status","check_books","list_publishers"]:
             # nasty trick, again better with a command DP???
             getattr(self, cmd)()
 
     def updatedb(self):
+        """Retrieve new data from upstream db and merge with local db."""
         print "updatedb", "undefined"
 
     def download(self):
+        """Return the next file in queue to be downloaded"""
         print "download", "undefined"
         
     def check_books(self):
         """Pass integrity tests on book files contained in downloads folder.
         
         Keyword arguments:
-            Non
+            None
         For each file in the folder, if it is found in database and meets
         integrity constraints is marked in db as downloaded, otherwise 
         it's marked as error in db and the bad file is moved to 'rejected'
-        folder.
-        Integrity contraints depend upon the book library, e.g.:
-            * genesis: compute md5 hash and compare with database md5 field
-            * it-ebooks: verify the file has pdf format
+        folder. Integrity checking depends upon the book library.
         """
         print "check_books", "undefined"
 
     def status(self):
+        """Print statistics of database, download status and forecast"""
         print "status", "undefined"
         
     def _shortify(self, title):
+        """Return filename without special characters from book title"""
         return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')  
         
     def _save_bookdb(self):
