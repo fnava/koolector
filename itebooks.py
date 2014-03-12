@@ -244,7 +244,9 @@ class itebooks(bookLibrary):
         bidx = 1
         blen = len(self._bookdb)
         for book_idx,book_data in self._bookdb.items():
-            filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
+            #filename = "%05d_%s.%s" % (int(book_idx),book_data['short-title'],book_data['bookFormat'])
+            short_title = self._shortify(book_data["title"])
+            filename =  "%s_%s.pdf" % (book_idx, short_title)
             filepath = os.path.join(basedir,filename)
             if not os.access(filepath, os.F_OK):
                 soup = get_page(book_data["url-itbooks"])
