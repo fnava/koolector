@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 import json
 import re
 import os
+import sys
 import stat
 import time
 import magic
@@ -237,7 +238,7 @@ class itebooks(bookLibrary):
                 filetype = mime.from_file(filepath)
                 time.sleep(10)
             else:
-                break
+                return
         sys.stderr.write("Unable to download %s" % filename)
         
     def _check_next_item(self):
