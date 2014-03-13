@@ -62,7 +62,10 @@ class bookLibrary:
         max_length = 255
         # Min length is key plus filename extension
         cut_length = max_length - len("X1234567_.pdf")
-        return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')[:cut_length]  
+        short_title = "".join([c for c in title if re.match(r'\w| ', c)])
+        short_title.replace(' ','_')[:cut_length]
+        assert len(short_title) <= max_length
+        return short_title
         
     def _save_bookdb(self):
         """Dump _bookdb dictionary to JSON format database"""
