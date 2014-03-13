@@ -161,11 +161,6 @@ class genesis(bookLibrary):
                   "authors",
                   "datePublished",
                   "publisher",        # Linux max filename size is 255:
-        max_length = 255
-        # Min length is key plus filename extension
-        cut_length = max_length - len("X1234567_.pdf")
-        return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')[:cut_length]  
-        
                   "numberOfPages",
                   "inLanguage",
                   "bookFormat",
