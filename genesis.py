@@ -120,9 +120,11 @@ class genesis(bookLibrary):
             # Chapuza hasta que el proximo updatedb inserte en db filenames 
             # con long <255:
             if len(book["filename"])>255:
-                filename = filename[:9] + self._shortify(book["title"])+".pdf"
+                filename = book["filename"][:9] + self._shortify(book["title"])+".pdf"
             # End chapuza
-            return os.path.join(self.homeDir, self.booksDir, book["filename"])
+            else:
+                filename = book["filename"]            
+            return os.path.join(self.homeDir, self.booksDir, filename)
         else:
             return None
             
