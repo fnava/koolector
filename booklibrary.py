@@ -58,7 +58,11 @@ class bookLibrary:
         
     def _shortify(self, title):
         """Return filename without special characters from book title"""
-        return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')  
+        # Linux max filename size is 255:
+        max_length = 255
+        # Min length is key plus filename extension
+        cut_length = max_length - len("X1234567_.pdf")
+        return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')[:cut_length]  
         
     def _save_bookdb(self):
         """Dump _bookdb dictionary to JSON format database"""
