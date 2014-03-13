@@ -116,7 +116,12 @@ class genesis(bookLibrary):
 
     def _filepath(self, book):
         """Returns full path filename for a books file"""
-        if "filename" in book:
+        if "filename" in book and "title" in book:
+            # Chapuza hasta que el proximo updatedb inserte en db filenames 
+            # con long <255:
+            if len(book["filename"])>255:
+                filename = filename[:9] + self._shortify(book["title"])+".pdf"
+            # End chapuza
             return os.path.join(self.homeDir, self.booksDir, book["filename"])
         else:
             return None
@@ -155,7 +160,12 @@ class genesis(bookLibrary):
                   "title",
                   "authors",
                   "datePublished",
-                  "publisher",
+                  "publisher",        # Linux max filename size is 255:
+        max_length = 255
+        # Min length is key plus filename extension
+        cut_length = max_length - len("X1234567_.pdf")
+        return "".join([c for c in title if re.match(r'\w| ', c)]).replace(' ','_')[:cut_length]  
+        
                   "numberOfPages",
                   "inLanguage",
                   "bookFormat",
