@@ -244,8 +244,8 @@ class genesis(bookLibrary):
         for i in range(1,max_trials):
             if os.access(filepath, os.F_OK):
                 if not criteria(filepath, book["md5"]):
-                    os.remove(filepath)
                     time.sleep(5)
+                    os.remove(filepath)
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
                     return
