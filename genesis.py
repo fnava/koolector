@@ -123,7 +123,8 @@ class genesis(bookLibrary):
                 filename = book["filename"][:9] + self._shortify(book["title"])+".pdf"
             # End chapuza
             else:
-                filename = book["filename"]            
+                filename = book["filename"] 
+            assert len(filename) < 255
             return os.path.join(self.homeDir, self.booksDir, filename)
         else:
             return None
@@ -244,15 +245,15 @@ class genesis(bookLibrary):
                 md5 = hashfile(open(filepath, 'rb'))
                 if book["md5"] != md5:
                     print "lo borraria"                    
-                    #os.remove(filepath)
+                    os.remove(filepath)
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
                     return
             cmd_wget = "/usr/bin/wget -nc -O %s %s" % (filepath, downloadUrl)
             print cmd_wget
             subprocess.call(cmd_wget.split(), shell=False)
-        sys.stderr.write("Unable to download %s" % filepath)
-        
+        sys.stderr.write("Unable to download %s" % filepath)   
+     
     def _check_next_item(self):
         """Return next book data from download queue"""
         for book_idx,book_data in self._bookdb.items():
