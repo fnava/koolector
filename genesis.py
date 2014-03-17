@@ -15,6 +15,7 @@ import magic
 from booklibrary import bookLibrary
 import hashlib
 import difflib
+import time
 
 
 def hashfile(afile, blocksize=65536):
@@ -244,6 +245,7 @@ class genesis(bookLibrary):
                 md5 = hashfile(open(filepath, 'rb'))
                 if book["md5"] != md5:
                     os.remove(filepath)
+                    time.sleep(5)
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
                     return
