@@ -124,7 +124,6 @@ class genesis(bookLibrary):
             # End chapuza
             else:
                 filename = book["filename"] 
-            print len(filename)
             return os.path.join(self.homeDir, self.booksDir, filename)
         else:
             return None
@@ -239,7 +238,7 @@ class genesis(bookLibrary):
         """Download book file"""
         downloadUrl = "%s/get?md5=%s&open=0" % (self.siteUrl, book["md5"])
         filepath = self._filepath(book)
-        for i in range(0,2):
+        for i in range(0,5):
             print i
             if os.access(filepath, os.F_OK):
                 md5 = hashfile(open(filepath, 'rb'))
