@@ -238,13 +238,13 @@ class genesis(bookLibrary):
     
     def _download_item(self, book):
         """Download book file"""
-        max_trials = 6
+        max_trials = 10
         downloadUrl = "%s/get?md5=%s&open=0" % (self.siteUrl, book["md5"])
         filepath = self._filepath(book)
         for i in range(1,max_trials):
             if os.access(filepath, os.F_OK):
                 if not criteria(filepath, book["md5"]):
-                    time.sleep(5)
+                    time.sleep(10)
                     os.remove(filepath)
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
