@@ -124,7 +124,7 @@ class genesis(bookLibrary):
             # End chapuza
             else:
                 filename = book["filename"] 
-            assert len(filename) < 255
+            assert len(filename) <= 255
             return os.path.join(self.homeDir, self.booksDir, filename)
         else:
             return None
