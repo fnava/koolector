@@ -243,7 +243,6 @@ class genesis(bookLibrary):
             if os.access(filepath, os.F_OK):
                 md5 = hashfile(open(filepath, 'rb'))
                 if book["md5"] != md5:
-                    print "lo borraria"                    
                     os.remove(filepath)
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
