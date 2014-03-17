@@ -241,7 +241,6 @@ class genesis(bookLibrary):
         downloadUrl = "%s/get?md5=%s&open=0" % (self.siteUrl, book["md5"])
         filepath = self._filepath(book)
         for i in range(0,5):
-            print i
             if os.access(filepath, os.F_OK):
                 if not criteria(filepath, book["md5"]):
                     os.remove(filepath)
@@ -249,6 +248,7 @@ class genesis(bookLibrary):
                 else:
                     self._bookdb["m"] = bookLibrary.marks["to verify"]
                     return
+            print "Download trial #%d" % str(i+1)
             cmd_wget = "/usr/bin/wget -nc -O %s %s" % (filepath, downloadUrl)
             print cmd_wget
             subprocess.call(cmd_wget.split(), shell=False)
