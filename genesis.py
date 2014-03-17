@@ -27,6 +27,17 @@ def hashfile(afile, blocksize=65536):
         hasher.update(buf)
         buf = afile.read(blocksize)
     return hasher.hexdigest()
+    
+    
+def criteria(filepath, md5):
+    """Compare computed md5 with stored in book db"""
+    A = md5.strip().upper() 
+    B = hashfile(open(filepath, 'rb')).upper()
+    if not A == B:
+        print "\n".join(difflib.ndiff([A], [B]))
+        #print self._bookdb[fileid]["md5"]
+        #print md5
+    return A == B
 
 class genesis(bookLibrary):
     
@@ -62,16 +73,6 @@ class genesis(bookLibrary):
         Book file integrity is checked using criteria function which
         computes md5 sum and compares with value stored in database
         """
-
-        def criteria(filepath, md5):
-            """Compare computed md5 with stored in book db"""
-            A = md5.strip().upper() 
-            B = hashfile(open(filepath, 'rb')).upper()
-            if not A == B:
-                print "\n".join(difflib.ndiff([A], [B]))
-                #print self._bookdb[fileid]["md5"]
-                #print md5
-            return A == B
 
         self._load_bookdb()
         books_dir = os.path.join(self.homeDir, self.booksDir)
@@ -242,8 +243,7 @@ class genesis(bookLibrary):
         for i in range(0,5):
             print i
             if os.access(filepath, os.F_OK):
-                md5 = hashfile(open(filepath, 'rb'))
-                if book["md5"] != md5:
+                if not criteria(filepath, book["md5"]):
                     os.remove(filepath)
                     time.sleep(5)
                 else:
