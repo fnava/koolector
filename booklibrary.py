@@ -28,7 +28,7 @@ class bookLibrary:
         self.homeDir=homeDir
         
     def command(self, cmd):
-        if cmd in ["updatedb","download","status","check_books","list_publishers"]:
+        if cmd in ["updatedb","download","status","check_books","list_publishers", "mirrordb"]:
             # nasty trick, again better with a command DP???
             getattr(self, cmd)()
 

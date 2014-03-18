@@ -130,9 +130,51 @@ class genesis(bookLibrary):
         else:
             return None
             
-    def _mirrordb(self):
+    def mirrordb(self):
         """Download libgen db snapshot dump file and rebuild in local mirror."""
-        pass
+        
+        import genesis_sql
+        filter = genesis_sql.queries["clean_english_pdf"]
+        fields = genesis_sql.fields_dict
+#        print filter, fields
+        
+        import MySQLdb
+        import json                    #os.remove(filepath)
+    
+        bl = []
+        book = {}
+        db = MySQLdb.connect(host="localhost", 
+                             user="root",    
+                             passwd="root",  
+                             db="libgen1",
+                             charset='utf8')
+        cursor = db.cursor()
+        cursor.execute(filter)
+        db.commit()
+        numrows = int(cursor.rowcount)
+        import datetime
+        for x in range(0,numrows):
+            row = cursor.fetchone()
+            def ff(t,i):
+                if t == "timestamp": 
+                    # to serialize to JSON, datetime.datetime objects must
+                    # be converted to strings
+                    return row[i].isoformat()
+                else: 
+                    return row[i] 
+            book = { m:ff(t,i) for i,(n,m,t) in fields.items() }
+            # No seria bonito hacerlo todo en el list comprehension usando lambda?
+            #book = { m:lambda t,i: row[i] if t != "timestamp" else row[i].isoformat()
+            #            for i,(n,m,t) in fields.items() }
+            # pero no funciona, devuelve "lambdas" en vez de ejecutarlas, pq??
+            bl.append(book)
+
+            #print book
+            #print row
+
+        print json.dumps(bl)
+
+            
         # Pseudo codigo
         ## Descarga de libgen
         # Descargar dump database
@@ -156,8 +198,9 @@ class genesis(bookLibrary):
 
     def _query_libgen(self): 
         """Returns a dictionary with book data retrieved from mysql libgen db"""
+        
         import genesis_sql        
-        filter = genesis_sql.queries["everything_2014_bysize"]
+        filter = genesis_sql.queries["clean_english_pdf_2014_bysize"]
 
         fields = ["id", 
                   "md5",
