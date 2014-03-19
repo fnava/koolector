@@ -134,14 +134,19 @@ class genesis(bookLibrary):
         """Download libgen db snapshot dump file and rebuild in local mirror."""
         
         import genesis_sql
-        filter = genesis_sql.queries["clean_english_pdf"]
+        content_filter = genesis_sql.queries["clean_english_pdf"]
+        count_filter = genesis_sql.queries["count_clean_english_pdf"]
         fields = genesis_sql.fields_dict
 #        print filter, fields
         
+        import pymongo
+        mcl = pymongo.Connection('mongodb://localhost:27017/')
+        mdb = mcl['libgen']
+        book_collection = mdb['books']                
+
         import MySQLdb
-        import json                    #os.remove(filepath)
-    
-        bl = []
+        import MySQLdb.cursors
+        import json
         book = {}
         db = MySQLdb.connect(host="localhost", 
                              user="root",    
@@ -149,31 +154,66 @@ class genesis(bookLibrary):
                              db="libgen1",
                              charset='utf8')
         cursor = db.cursor()
-        cursor.execute(filter)
-        db.commit()
-        numrows = int(cursor.rowcount)
+        cursor.execute(count_filter)
+        book_count = cursor.fetchall()[0][0]
+        cursor.close()
+
         import datetime
-        for x in range(0,numrows):
+        start_time = datetime.datetime.now()
+        
+        # Using SSCursor to store resulset in server, otherwise python client
+        # would store all resulset in memory before iterating throuh it. See:
+        # http://techualization.blogspot.com.es/2011/12/retrieving-million-of-rows-from-mysql.html
+        cursor = MySQLdb.cursors.SSCursor(db)
+        cursor.execute(content_filter)
+
+        # unbuffered output as suggested in
+        # http://stackoverflow.com/questions/107705/python-output-buffering
+        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+                
+        row = cursor.fetchone()
+        x = 0
+        u = 0
+        i = 0
+        while row is not None:
+#            def ff(t,i):
+#                if t == "timestamp": 
+#                    # to serialize to JSON, datetime.datetime objects must
+#                    # be converted to strings
+#                    return row[i].isoformat()
+#                else: 
+#                    return row[i] 
+#            book = { m:ff(t,i) for i,(n,m,t) in fields.items() }
+#            # No seria bonito hacerlo todo en el list comprehension usando lambda?
+#            #book = { m:lambda t,i: row[i] if t != "timestamp" else row[i].isoformat()
+#            #            for i,(n,m,t) in fields.items() }
+#            # pero no funciona, devuelve "lambdas" en vez de ejecutarlas, pq??
+#            #bl.append(book)
+    
+            book = { m:row[i] for i,(n,m,t) in fields.items() }
+            b_byid = book_collection.find_one({"id":book["id"]})
+            if b_byid is not None:
+                book["_id"] = b_byid["_id"]
+                book_collection.save(book)
+                u += 1
+                #print "updating %s" % b_byid["_id"]
+            else:
+                b_id = book_collection.insert(book)
+                i += 1
+                #print "inserting %s" % b_id
+
+            x += 1
+            elapsed = start_time - datetime.datetime.now()
+            eta = (book_count * elapsed ) / x
+            if x % 2000 == 0: 
+                print str(eta),
+                print "%d ins %d upd %d tot / %s (%f %%)" % (i,u,x, book_count, 1.0*x/book_count)
+#            hh = eta.seconds/3600
+#            mm = (eta.seconds-hh*3600)/60
+#            ss = eta.seconds-hh*3600-mm*60
+#            if x % 1000 == 0: sys.stdout.write("%d:%d:%d " % (hh,mm,ss))
+
             row = cursor.fetchone()
-            def ff(t,i):
-                if t == "timestamp": 
-                    # to serialize to JSON, datetime.datetime objects must
-                    # be converted to strings
-                    return row[i].isoformat()
-                else: 
-                    return row[i] 
-            book = { m:ff(t,i) for i,(n,m,t) in fields.items() }
-            # No seria bonito hacerlo todo en el list comprehension usando lambda?
-            #book = { m:lambda t,i: row[i] if t != "timestamp" else row[i].isoformat()
-            #            for i,(n,m,t) in fields.items() }
-            # pero no funciona, devuelve "lambdas" en vez de ejecutarlas, pq??
-            bl.append(book)
-
-            #print book
-            #print row
-
-        print json.dumps(bl)
-
             
         # Pseudo codigo
         ## Descarga de libgen

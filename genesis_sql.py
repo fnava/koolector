@@ -84,7 +84,18 @@ WHERE updated.Extension IN ("pdf", "PDF")
     AND updated.Generic =  ""
     AND updated.Visible =  ""
     AND updated.Language =  "English"
-    LIMIT 0,300
+/*    LIMIT 0,300 */
+"""
+
+queries["count_clean_english_pdf"] = """
+SELECT count(*)
+FROM updated
+WHERE updated.Extension IN ("pdf", "PDF")
+    AND updated.Filename !=  ""
+    AND updated.Generic =  ""
+    AND updated.Visible =  ""
+    AND updated.Language =  "English"
+/*    LIMIT 0,300 */
 """
 
 fields = [
